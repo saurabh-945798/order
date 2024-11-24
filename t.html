@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <!-- Login Section -->
+  <div id="loginSection" class="container mx-auto py-10">
+    <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Admin Login</h1>
+    <div class="bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+      <form id="loginForm">
+        <div class="mb-4">
+          <label for="adminId" class="block text-gray-700 font-bold mb-2">Admin ID:</label>
+          <input
+            type="text"
+            id="adminId"
+            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter Admin ID"
+            required
+          />
+        </div>
+        <div class="mb-6">
+          <label for="password" class="block text-gray-700 font-bold mb-2">Password:</label>
+          <input
+            type="password"
+            id="password"
+            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter Password"
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          class="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+        >
+          Login
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Panel Section -->
+  <div id="adminPanel" class="container mx-auto py-10 hidden">
+    <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Admin Panel - Orders</h1>
+
+    <div id="ordersContainer" class="space-y-6">
+      <!-- Orders will be dynamically added here -->
+    </div>
+  </div>
+
+  <script>
+    // Dummy admin credentials
+    const ADMIN_ID = "admin123";
+    const ADMIN_PASSWORD = "password123";
+
+    // Elements
+    const loginForm = document.getElementById("loginForm");
+    const loginSection = document.getElementById("loginSection");
+    const adminPanel = document.getElementById("adminPanel");
+    const ordersContainer = document.getElementById("ordersContainer");
+
+    // Fetch all orders from localStorage
+    const orders = JSON.parse(localStorage.getItem("orders")) || [];
+
+    // Function to handle login
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault(); // Prevent form submission
+
+      const adminId = document.getElementById("adminId").value;
+      const password = document.getElementById("password").value;
+
+      // Validate credentials
+      if (adminId === ADMIN_ID && password === ADMIN_PASSWORD) {
+        alert("Login successful!");
+        loginSection.classList.add("hidden"); // Hide login section
+        adminPanel.classList.remove("hidden"); // Show admin panel
+        renderOrders(); // Render orders
+      } else {
+        alert("Invalid Admin ID or Password. Please try again.");
+      }
+    });
+
+    // Function to render all orders
+    function renderOrders() {
+      ordersContainer.innerHTML = ""; // Clear previous content
+
+      if (orders.length === 0) {
+        ordersContainer.innerHTML = `<p class="text-center text-gray-500">No orders found.</p>`;
+        return;
+      }
+
+      orders.forEach((order, index) => {
+        // Create a card for each order
+        const orderCard = document.createElement("div");
+        orderCard.classList.add("bg-white", "p-6", "rounded-lg", "shadow-md");
+
+        // Order details
+        orderCard.innerHTML = `
+          <div class="mb-4">
+            <h2 class="text-xl font-bold text-gray-800">Order ${index + 1}</h2>
+            <p class="text-sm text-gray-600">Placed on: ${new Date(order.timestamp).toLocaleString()}</p>
+          </div>
+          <div class="mb-4">
+            <h3 class="text-lg font-semibold">Cart Items:</h3>
+            <ul class="divide-y divide-gray-300">
+              ${order.cart
+                .map(
+                  (item) => `
+                <li class="flex items-center space-x-4 py-4">
+                  <img src="${item.image}" alt="${item.name}" class="w-16 h-16 rounded-md object-cover">
+                  <div class="flex-1">
+                    <p class="font-semibold text-gray-800">${item.name}</p>
+                    <p class="text-sm text-gray-500">Quantity: ${item.quantity}</p>
+                  </div>
+                  <p class="font-bold text-gray-800">₹${item.price * item.quantity}</p>
+                </li>
+              `
+                )
+                .join("")}
+            </ul>
+          </div>
+          <div class="mb-4">
+            <h3 class="text-lg font-semibold">Special Instructions:</h3>
+            <p class="text-gray-600">${order.specialInstructions}</p>
+          </div>
+          <div class="mb-4">
+            <h3 class="text-lg font-semibold">Table Number:</h3>
+            <p class="text-gray-600">${order.tableNumber}</p>
+          </div>
+          <div class="flex justify-end space-x-4">
+            <button
+              class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              onclick="cancelOrder(${index})"
+            >
+              Cancel Order
+            </button>
+          </div>
+        `;
+
+        ordersContainer.appendChild(orderCard);
+      });
+    }
+
+    // Function to cancel an order
+    function cancelOrder(index) {
+      if (confirm("Are you sure you want to cancel this order?")) {
+        orders.splice(index, 1); // Remove the order
+        localStorage.setItem("orders", JSON.stringify(orders)); // Update localStorage
+        renderOrders(); // Re-render orders
+        alert("Order cancelled successfully!");
+      }
+    }
+  </script>
+</body>
+</html>
