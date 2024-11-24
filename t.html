@@ -54,7 +54,7 @@
   <script>
     // Dummy admin credentials
     const ADMIN_ID = "admin123";
-    const ADMIN_PASSWORD = "password123";
+    const ADMIN_PASSWORD = "123";
 
     // Elements
     const loginForm = document.getElementById("loginForm");
@@ -75,13 +75,38 @@
       // Validate credentials
       if (adminId === ADMIN_ID && password === ADMIN_PASSWORD) {
         alert("Login successful!");
-        loginSection.classList.add("hidden"); // Hide login section
-        adminPanel.classList.remove("hidden"); // Show admin panel
-        renderOrders(); // Render orders
+        
+        // Save login timestamp
+        const loginTime = new Date().getTime();
+        localStorage.setItem("loginTime", loginTime);
+
+        // Show admin panel and hide login
+        loginSection.classList.add("hidden");
+        adminPanel.classList.remove("hidden");
+        renderOrders();
       } else {
         alert("Invalid Admin ID or Password. Please try again.");
       }
     });
+
+    // Function to check session timeout
+    function checkSession() {
+      const loginTime = parseInt(localStorage.getItem("loginTime"));
+      const currentTime = new Date().getTime();
+
+      if (isNaN(loginTime) || currentTime - loginTime > 2 * 60 * 1000) {
+        // If more than 2 minutes have passed, log out
+        alert("Your session has expired. Please log in again.");
+        localStorage.removeItem("loginTime");
+        loginSection.classList.remove("hidden");
+        adminPanel.classList.add("hidden");
+      } else {
+        // If session is still valid, show admin panel
+        loginSection.classList.add("hidden");
+        adminPanel.classList.remove("hidden");
+        renderOrders();
+      }
+    }
 
     // Function to render all orders
     function renderOrders() {
@@ -153,6 +178,9 @@
         alert("Order cancelled successfully!");
       }
     }
+
+    // Check session on page load
+    window.onload = checkSession;
   </script>
 </body>
 </html>
